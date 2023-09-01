@@ -91,6 +91,22 @@ export default function ConnectButton() {
     await contract.transfer(recieverAdd, sendAmount);
   }, [account, library]);
 
+  const loadBabyDogeBalance = useCallback(async () => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const contract = new ethers.Contract(
+      "0xc748673057861a797275CD8A068AbB95A902e8de",
+      abi,
+      provider.getSigner()
+    );
+
+    const babyDogeValue = await contract.balanceOf(account);
+    const multipliedValue = babyDogeValue.mul(
+      ethers.BigNumber.from("1000000000")
+    );
+
+    setBabyBalance(ethers.utils.formatUnits(multipliedValue, 18));
+  }, [account]);
+
   const sendAction = useCallback(async () => {
     const provider = new ethers.providers.Web3Provider(library);
     const tx = {
@@ -112,11 +128,6 @@ export default function ConnectButton() {
 
   const valueload = useCallback(async () => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const contract = new ethers.Contract(
-      "0xc748673057861a797275CD8A068AbB95A902e8de",
-      abi,
-      provider.getSigner()
-    );
 
     if (account) {
       const value = await provider.getBalance(account);
@@ -124,8 +135,10 @@ export default function ConnectButton() {
 
       const gasPrice = await provider.getGasPrice();
       setGasFee(ethers.utils.formatUnits(gasPrice, "gwei"));
+
+      loadBabyDogeBalance();
     }
-  }, [account, library]);
+  }, [account, library, loadBabyDogeBalance]);
 
   useEffect(() => {
     active && valueload();
